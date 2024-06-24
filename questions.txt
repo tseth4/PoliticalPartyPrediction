@@ -1,0 +1,4 @@
+What should be the government's role in healthcare?|Implement universal healthcare,Maintain private healthcare with regulations,Fully privatize healthcare,Keep current mixed system
+How should the government approach gun control?|Implement strict gun control laws,Enforce existing laws more rigorously,Loosen restrictions on gun ownership,Maintain current gun laws
+What's your stance on environmental regulations?|Increase regulations to combat climate change,Balance environmental protection with economic growth,Reduce regulations to promote business growth,Climate change is not a significant concern
+Which political party do you most closely affiliate with?|Democrat,Republican,Independent,Libertarian
