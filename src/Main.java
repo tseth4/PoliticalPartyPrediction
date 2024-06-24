@@ -1,6 +1,8 @@
 import java.util.*;
 import java.io.FileWriter;
 import java.io.IOException;
+//import java.io.BufferedReader;
+//import java.io.FileReader;
 
 public class Main {
     public static void main(String[] args) {
@@ -37,11 +39,8 @@ class Survey {
     public Survey() {
         initializeQuestions();
         initializeParties();
+        initiateCSVFiles();
         initializeWeights();
-        // temp
-        for (PoliticalParty party : parties) {
-            System.out.println("party: " + party.name + " " + party.score);
-        }
     }
 
     /**
@@ -74,6 +73,7 @@ class Survey {
         );
     }
 
+
     /**
      * Populate weights
      */
@@ -81,25 +81,74 @@ class Survey {
         answerWeights = new HashMap<>();
         // Healthcare question
         Map<String, Map<String, Integer>> healthcareWeights = new HashMap<>();
-        healthcareWeights.put("Implement universal healthcare", Map.of("Democrat", 2, "Republican", -2, "Independent", 0, "Libertarian", -2));
-        healthcareWeights.put("Maintain private healthcare with regulations", Map.of("Democrat", 1, "Republican", 1, "Independent", 1, "Libertarian", -1));
-        healthcareWeights.put("Fully privatize healthcare", Map.of("Democrat", -2, "Republican", 2, "Independent", 0, "Libertarian", 2));
-        healthcareWeights.put("Keep current mixed system", Map.of("Democrat", 0, "Republican", 0, "Independent", 1, "Libertarian", -1));
+        healthcareWeights.put("Implement universal healthcare", Map.of("Democrat", 2, "Republican", 0, "Independent", 0, "Libertarian", 0));
+        healthcareWeights.put("Maintain private healthcare with regulations", Map.of("Democrat", 2, "Republican", 0, "Independent", 1, "Libertarian", 2));
+        healthcareWeights.put("Fully privatize healthcare", Map.of("Democrat", 0, "Republican", 2, "Independent", 0, "Libertarian", 1));
+        healthcareWeights.put("Keep current mixed system", Map.of("Democrat", 0, "Republican", 1, "Independent", 1, "Libertarian", 0));
         answerWeights.put("What should be the government's role in healthcare?", healthcareWeights);
         // Gun control question
         Map<String, Map<String, Integer>> gunControlWeights = new HashMap<>();
-        gunControlWeights.put("Implement strict gun control", Map.of("Democrat", 2, "Republican", -2, "Independent", 0, "Libertarian", -2));
-        gunControlWeights.put("Enforce existing laws rigorously", Map.of("Democrat", 1, "Republican", 1, "Independent", 1, "Libertarian", -1));
-        gunControlWeights.put("Loosen gun ownership restrictions", Map.of("Democrat", -2, "Republican", 2, "Independent", 0, "Libertarian", 2));
+        gunControlWeights.put("Implement strict gun control", Map.of("Democrat", 2, "Republican", 0, "Independent", 0, "Libertarian", 0));
+        gunControlWeights.put("Enforce existing laws rigorously", Map.of("Democrat", 2, "Republican", 0, "Independent", 1, "Libertarian", 1));
+        gunControlWeights.put("Loosen gun ownership restrictions", Map.of("Democrat", 0, "Republican", 2, "Independent", 0, "Libertarian", 1));
         gunControlWeights.put("Maintain current gun laws", Map.of("Democrat", 0, "Republican", 0, "Independent", 1, "Libertarian", 0));
         answerWeights.put("How should the government approach gun control?", gunControlWeights);
         // Environmental regulations question
         Map<String, Map<String, Integer>> environmentWeights = new HashMap<>();
-        environmentWeights.put("Increase regulations to combat climate change", Map.of("Democrat", 2, "Republican", -2, "Independent", 1, "Libertarian", -2));
-        environmentWeights.put("Balance environmental protection with economic growth", Map.of("Democrat", 1, "Republican", 1, "Independent", 2, "Libertarian", 0));
-        environmentWeights.put("Reduce regulations to promote business growth", Map.of("Democrat", -2, "Republican", 2, "Independent", 0, "Libertarian", 2));
-        environmentWeights.put("Climate change is not a significant concern", Map.of("Democrat", -2, "Republican", 1, "Independent", -1, "Libertarian", 1));
+        environmentWeights.put("Increase regulations to combat climate change", Map.of("Democrat", 2, "Republican", 0, "Independent", 0, "Libertarian", 0));
+        environmentWeights.put("Balance environmental protection with economic growth", Map.of("Democrat", 0, "Republican", 0, "Independent", 2, "Libertarian", 0));
+        environmentWeights.put("Reduce regulations to promote business growth", Map.of("Democrat", 0, "Republican", 2, "Independent", 0, "Libertarian", 1));
+        environmentWeights.put("Climate change is not a significant concern", Map.of("Democrat", 0, "Republican", 2, "Independent", 0, "Libertarian", 0));
         answerWeights.put("What's your stance on environmental regulations?", environmentWeights);
+    }
+
+    public void initiateCSVFiles() {
+        for (PoliticalParty party : parties) {
+            createEmptyCSVFile(party.name + ".csv");
+        }
+    }
+
+
+    public void createEmptyCSVFile(String filename){
+        try (FileWriter writer = new FileWriter(filename)) {
+            System.out.println("Empty CSV file created successfully: " + filename);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void writeResponsesToFile(String partyInput){
+        String csvFile = partyInput + ".csv";
+        System.out.println("Writing to " + csvFile);
+
+        try (FileWriter writer = new FileWriter(csvFile)) {
+            // Write header
+            writer.append("Question,Answer,Party,Weight\n");
+            // Write data
+            for (Map.Entry<String, Map<String, Map<String, Integer>>> questionEntry : answerWeights.entrySet()) {
+                String question = questionEntry.getKey();
+                for (Map.Entry<String, Map<String, Integer>> answerEntry : questionEntry.getValue().entrySet()) {
+                    String answer = answerEntry.getKey();
+                    for (Map.Entry<String, Integer> partyEntry : answerEntry.getValue().entrySet()) {
+                        String party = partyEntry.getKey();
+                        Integer weight = partyEntry.getValue();
+                        writer.append(question)
+                                .append(",")
+                                .append(answer)
+                                .append(",")
+                                .append(party)
+                                .append(",")
+                                .append(weight.toString())
+                                .append("\n");
+                    }
+                }
+            }
+
+            System.out.println("CSV file written successfully.");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 
     /**
@@ -118,7 +167,14 @@ class Survey {
                 System.out.println((j + 1) + ". " + question.options.get(j));
             }
             // get user input choice index
-            int choice = scanner.nextInt() - 1;
+            int choice = -1;
+            while (choice < 0 || choice >= question.options.size()) {
+                System.out.print("Please enter a valid choice: ");
+                choice = scanner.nextInt() - 1;
+                if (choice < 0 || choice >= question.options.size()) {
+                    System.out.println("Invalid choice. Please try again.");
+                }
+            }
             // if we are at the last question
             if (i == questions.size() - 1) {
                 // This is the party affiliation question
@@ -128,17 +184,17 @@ class Survey {
                 // call updateScores with the question and the choice
                 updateScores(question.text, question.options.get(choice));
 
-                String prediction = predictParty();
-                if (!prediction.equals("Uncertain")) {
-                    System.out.println("Predicted party: " + prediction);
-                }
+
             }
         }
 
         System.out.println("Survey completed. User's stated party: " + userParty);
         System.out.println("Final prediction: " + predictParty());
 
-        // Here you could add code to store the results, comparing the prediction to the user's stated party
+        String prediction = predictParty();
+        if (!prediction.equals("Uncertain, please try again")) {
+            writeResponsesToFile(prediction);
+        }
     }
 
     /**
@@ -153,7 +209,7 @@ class Survey {
         if (questionWeights != null) {
             // get the weights for the answer that was inputed by the user store in answerWeights
             Map<String, Integer> answerWeights = questionWeights.get(answer);
-            System.out.println("Answer Weights: " + answerWeights);
+//            System.out.println("Answer Weights: " + answerWeights);
             //
             if (answerWeights != null) {
                 // loop through political parties
@@ -167,14 +223,10 @@ class Survey {
                 }
             }
         }
-        // temp
-        for (PoliticalParty party : parties) {
-            System.out.println("party: " + party.name + " " + party.score);
-        }
     }
 
     /**
-     * Make the preduction
+     * Make the prediction
      * @return
      */
     private String predictParty() {
